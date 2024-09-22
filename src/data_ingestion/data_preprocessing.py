@@ -30,7 +30,7 @@ class PlotChart:
 
         logging.info(f"Image will be saved as {self.config.image_filename}")
 
-    def create_table_image(self, width_factors=None, show_image=False, dpi=500):
+    def create_table_image(self, width_factors=None, show_image=False, dpi=600):
         """
         Creates an image of the DataFrame rendered as a table and saves or displays it.
 
@@ -43,8 +43,11 @@ class PlotChart:
         io.BytesIO: The in-memory image object.
         """
         try:
+            logging.info(f"DataFrame shape before creating image: {self.df.shape}")
+            logging.info(f"DataFrame content:\n{self.df.head()}")
+
             # Create a figure and axis for the plot
-            fig, ax = plt.subplots(figsize=(23, 15))  # Adjust size accordingly
+            fig, ax = plt.subplots(figsize=(25, 15))  # Adjust size accordingly
 
             # Hide axes
             ax.xaxis.set_visible(False)

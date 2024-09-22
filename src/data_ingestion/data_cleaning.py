@@ -58,6 +58,7 @@ class DataIngestion:
 
             os.makedirs(os.path.dirname(self.ingestion_config.clean_data_path), exist_ok=True)
             df_sorted.to_excel(self.ingestion_config.clean_data_path, index=False, header=True)
+            
             logging.info('Data cleaning completed')
 
             return self.ingestion_config.clean_data_path

@@ -10,14 +10,14 @@ import pandas as pd
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 # Import your classes
-from exception import CustomException
-from logger import logging
+from src.exception import CustomException
+from src.logger import logging
 from src.data_ingestion.data_cleaning import DataIngestion
 from src.data_ingestion.data_preprocessing import PlotChart 
 
 if __name__ == '__main__':
     operator = ['Vodafone Dumps']
-    alarm = ['Battery Discharge/Low battery']
+    alarm = ['4G OUTAGE']
     
     try:
         # Initiate data ingestion
@@ -29,7 +29,8 @@ if __name__ == '__main__':
         # Check if the clean data exists and load it
         if os.path.exists(clean_data_path):
             df = pd.read_excel(clean_data_path)
-            logging.info(f"Data loaded: {df.head()}")  
+            logging.info(f"Data loaded: {df.head()}") 
+             
             
             # Check type before passing to PlotChart
             logging.info(f"Type of data passed to PlotChart: {type(df)}") 

@@ -40,7 +40,7 @@ if uploaded_file is not None:
         if os.path.exists(clean_data_path):
             df_clean = pd.read_excel(clean_data_path)  # Read the Excel file into a DataFrame
             st.dataframe(df_clean)  # Show the cleaned data for review
-
+            
             # Generate the image using PlotChart
             plot_chart = PlotChart(df_clean)
             image_bytes = plot_chart.create_table_image(show_image=False)
