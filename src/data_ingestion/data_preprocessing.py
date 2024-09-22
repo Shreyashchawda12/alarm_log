@@ -9,15 +9,12 @@ from src.logger import logging  # Ensure logger is properly set up in your proje
 
 @dataclass
 class PlotChartConfig:
-    downloads_dir: str = os.path.join(os.path.expanduser("~"), "Downloads")
-    
-    
     image_filename: str = f"Alarm.png"
 
     @property
     def image_path(self):
-        return os.path.join(self.downloads_dir, self.image_filename)
-
+        # Remove downloads_dir since cloud environments do not support this
+        return self.image_filename  # Use just the image filename
 
 class PlotChart:
     def __init__(self, df: pd.DataFrame, config: PlotChartConfig = PlotChartConfig()):
@@ -31,7 +28,7 @@ class PlotChart:
         self.df = df
         self.config = config
 
-        logging.info(f"Image will be saved in {self.config.downloads_dir}")
+        logging.info(f"Image will be saved as {self.config.image_filename}")
 
     def create_table_image(self, width_factors=None, show_image=False, dpi=500):
         """
@@ -43,7 +40,7 @@ class PlotChart:
         dpi (int, optional): The DPI (dots per inch) for saving the image. Default is 500.
 
         Returns:
-        str: The path where the image is saved.
+        io.BytesIO: The in-memory image object.
         """
         try:
             # Create a figure and axis for the plot
@@ -85,20 +82,11 @@ class PlotChart:
             plt.savefig(buf, format='png', bbox_inches='tight', dpi=dpi)  # High DPI for better quality
             buf.seek(0)
 
-            # Convert the buffer to an image using Pillow
-            image = Image.open(buf)
-
-            # Show or save the image based on the parameters
-            if show_image:
-                image.show()  # Display the image
-                logging.info("Image displayed.")
-            else:
-                image.save(self.config.image_path)  # Save the image to the Downloads folder
-                logging.info(f"Image saved at {self.config.image_path}")
+            logging.info("Image created in memory.")
 
             plt.close(fig)  # Close the figure to free memory
 
-            return self.config.image_path  # Return the path of the saved image
+            return buf  # Return the in-memory image buffer
 
         except Exception as e:
             logging.error(f"An error occurred while creating the table image: {str(e)}", exc_info=True)
