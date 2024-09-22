@@ -39,7 +39,7 @@ if uploaded_file is not None:
         # Load the cleaned data from the file path into a DataFrame
         if os.path.exists(clean_data_path):
             df_clean = pd.read_excel(clean_data_path)  # Read the Excel file into a DataFrame
-            st.dataframe(df_clean.head())  # Show the cleaned data for review
+            st.dataframe(df_clean)  # Show the cleaned data for review
 
             # Generate the image using PlotChart
             plot_chart = PlotChart(df_clean)
