@@ -4,9 +4,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from PIL import Image
 from dataclasses import dataclass
-from data_ingestion import data_cleaning
-from exception import CustomException
-from logger import logging  # Ensure logger is properly set up in your project
+from src.exception import CustomException
+from src.logger import logging  # Ensure logger is properly set up in your project
 
 @dataclass
 class PlotChartConfig:

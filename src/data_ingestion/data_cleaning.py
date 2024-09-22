@@ -2,8 +2,8 @@ import pandas as pd
 import os
 import sys
 from datetime import datetime
-from exception import CustomException
-from logger import logging
+from src.exception import CustomException
+from src.logger import logging
 from dataclasses import dataclass
 
 @dataclass
