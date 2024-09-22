@@ -1,0 +1,6 @@
+matplotlib
+pandas
+Pillow
+setuptools
+openpyxl
+streamlit
