@@ -3,6 +3,7 @@ import io
 import pandas as pd
 import matplotlib.pyplot as plt
 from PIL import Image
+import sys
 from dataclasses import dataclass
 from src.exception import CustomException
 from src.logger import logging  # Ensure logger is properly set up in your project
@@ -31,6 +32,10 @@ class PlotChart:
         logging.info(f"Image will be saved as {self.config.image_filename}")
 
     def create_table_image(self, width_factors=None, show_image=False, dpi=600):
+        if self.df.empty:
+            logging.error("DataFrame is empty. No data available to create the table image.")
+        raise CustomException("DataFrame is empty.", sys)
+
         """
         Creates an image of the DataFrame rendered as a table and saves or displays it.
 
