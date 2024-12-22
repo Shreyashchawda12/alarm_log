@@ -3,3 +3,5 @@ pandas
 matplotlib
 Pillow
 openpyxl  # Required for reading Excel files
+selenium
+webdriver
