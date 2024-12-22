@@ -2,7 +2,9 @@ streamlit
 pandas
 matplotlib
 Pillow
-openpyxl  # Required for reading Excel files
+openpyxl  
 selenium
 webdriver  
+
+
 
