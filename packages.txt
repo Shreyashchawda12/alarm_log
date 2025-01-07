@@ -1,6 +1,1 @@
-
-# Download Google Chrome .deb package
-wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-
-# Install the .deb package using dpkg
-dpkg -i google-chrome-stable_current_amd64.deb || apt-get -f install -y
+apt-get install -y chromium
