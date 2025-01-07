@@ -4,7 +4,7 @@ import streamlit as st
 from io import BytesIO
 from src.data_ingestion.data_cleaning import DataIngestion
 from src.data_ingestion.data_preprocessing import PlotChart
-from src.data_ingestion.data_injecting import run_selenium_script
+#from src.data_ingestion.data_injecting import run_selenium_script
 
 # Create an artifacts folder if it doesn't exist
 os.makedirs('artifacts', exist_ok=True)
@@ -12,10 +12,11 @@ os.makedirs('artifacts', exist_ok=True)
 # Streamlit App Title
 st.title("Data Processing and Visualization App")
 # Add button to trigger Selenium script
+'''
 if st.button('Run Automation & Download Raw File'):
     with st.spinner('Running automation...'):
         screenshot = run_selenium_script()
-
+'''
 # Upload the file
 uploaded_file = st.file_uploader("Upload your Excel file", type='xlsx')
 #uploaded_file = st.file_uploader("Choose an Excel file", type="xlsx")

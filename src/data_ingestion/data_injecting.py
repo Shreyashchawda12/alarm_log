@@ -1,3 +1,4 @@
+'''
 import streamlit as st
 import os
 import logging
@@ -92,3 +93,4 @@ def run_selenium_script():
         logging.info("Closing browser.")
         driver.quit()
 
+'''
