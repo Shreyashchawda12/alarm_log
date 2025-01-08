@@ -13,9 +13,7 @@ os.makedirs('artifacts', exist_ok=True)
 st.title("Data Processing and Visualization App")
 # Add button to trigger Selenium script
 '''
-if st.button('Run Automation & Download Raw File'):
-    with st.spinner('Running automation...'):
-        screenshot = run_selenium_script()
+
 '''
 # Upload the file
 uploaded_file = st.file_uploader("Upload your Excel file", type='xlsx')

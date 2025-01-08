@@ -1,4 +1,4 @@
-'''
+
 import streamlit as st
 import os
 import logging
@@ -18,11 +18,11 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # Function to initialize the driver
 def setup_driver():
     chrome_options = Options()
-    chrome_options.add_argument("--headless") 
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.binary_location = "/usr/bin/chromium"
+    #chrome_options.add_argument("--headless") 
+    #chrome_options.add_argument("--disable-gpu")
+    #chrome_options.add_argument("--no-sandbox")
+    #chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.binary_location = "/usr/bin/chrome"
     service = Service(ChromeDriverManager().install())
     return webdriver.Chrome(service=service, options=chrome_options)
 
@@ -93,4 +93,21 @@ def run_selenium_script():
         logging.info("Closing browser.")
         driver.quit()
 
-'''
+if __name__ == "__main__":
+    logging.info("Starting the Selenium automation script.")
+
+    try:
+        # Execute the Selenium script
+        screenshot_io = run_selenium_script()
+
+        # Save the screenshot locally
+        output_file = "automation_screenshot.png"
+        with open(output_file, "wb") as f:
+            f.write(screenshot_io.getvalue())
+
+        logging.info(f"Selenium script executed successfully. Screenshot saved as '{output_file}'.")
+
+    except Exception as e:
+        logging.error(f"An error occurred during script execution: {e}")
+
+
