@@ -1,90 +1,150 @@
 import os
+import re
 import pandas as pd
 import streamlit as st
-from io import BytesIO
+
 from src.data_ingestion.data_cleaning import DataIngestion
 from src.data_ingestion.data_preprocessing import PlotChart
-#from src.data_ingestion.data_injecting import run_selenium_script
 
-# Create an artifacts folder if it doesn't exist
-os.makedirs('artifacts', exist_ok=True)
+# Create artifacts folder
+os.makedirs("artifacts", exist_ok=True)
 
-# Streamlit App Title
+# Streamlit page config
+st.set_page_config(page_title="Data Processing and Visualization App", layout="wide")
+
 st.title("Data Processing and Visualization App")
-# Add button to trigger Selenium script
-'''
 
-'''
-# Upload the file
-uploaded_file = st.file_uploader("Upload your Excel file", type='xlsx')
-#uploaded_file = st.file_uploader("Choose an Excel file", type="xlsx")
-# Check if a file was uploaded
+uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
+
+def safe_filename(text: str) -> str:
+    """
+    Convert text into a safe filename part.
+    """
+    text = str(text).strip().replace(" ", "_")
+    text = re.sub(r"[^A-Za-z0-9_\-]+", "", text)
+    return text
+
 if uploaded_file is not None:
-    # Save the uploaded file in the artifacts folder
-    raw_data_path = os.path.join('artifacts', 'Raw_data.xlsx')
-    
-    with open(raw_data_path, "wb") as f:
-        f.write(uploaded_file.getbuffer())
-    st.success("File uploaded and saved as raw data.")
+    try:
+        # Save uploaded file
+        raw_data_path = os.path.join("artifacts", "Raw_data.xlsx")
+        with open(raw_data_path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
 
-    # Load the data to preview in the app
-    df = pd.read_excel(raw_data_path, header = 1)
-    df.columns = df.columns.str.strip()
-    
-    # Validate the structure of the DataFrame (e.g., required columns)
-    required_columns = ['OpenTime', 'Cluster', 'SourceInput', 'ClearedDateTime', 'EventName']
-    if not all(col in df.columns for col in required_columns):
-        st.error("Uploaded file is missing required columns.")
-    else:
-        st.dataframe(df.head())  # Display first few rows for verification
+        st.success("File uploaded and saved successfully.")
 
-        # Provide dropdowns for filters (operators, alarms, clusters)
-        operator = st.multiselect("Select Operator", ['Airtel Dumps', 'RJIO', 'Vodafone Dumps', 'Mobile'])
-        alarm = st.multiselect("Select Alarms", ['Battery Discharge/Low battery', 'Mains Fail/EB Fail',
-                                                 'SITE ON BATTERY', 'RU LOW VOLTAGE', '4G OUTAGE', '2G OUTAGE'])
-        cluster = st.multiselect("Select Cluster", ['Aurangabad', 'Nashik', 'Pune-1', 'Akola', 'Ahmednagar',
-                                                    'Nagpur', 'Latur', 'Pune-3', 'Kolhapur', 'Pune-2', 'Goa',
-                                                    'Solapur'])
+        # Read preview
+        df = pd.read_excel(raw_data_path, header=1)
+        df.columns = df.columns.str.strip()
 
-        # Validate that user has selected at least one option in each category
-        if st.button("Process and Generate Image"):
-            if not operator or not alarm or not cluster:
-                st.error("Please select at least one Operator, Alarm, and Cluster to process the data.")
-            else:
+        required_columns = ["OpenTime", "Cluster", "SourceInput", "ClearedDateTime", "EventName"]
+        missing_columns = [col for col in required_columns if col not in df.columns]
+
+        if missing_columns:
+            st.error(f"Uploaded file is missing required columns: {missing_columns}")
+        else:
+            # Normalize display columns
+            for col in ["Cluster", "SourceInput", "EventName"]:
+                if col in df.columns:
+                    df[col] = df[col].astype(str).str.strip()
+
+            st.subheader("Uploaded File Preview")
+            st.dataframe(df.head(), use_container_width=True)
+
+            # Dynamic options from uploaded file
+            cluster_options = sorted(df["Cluster"].dropna().unique().tolist())
+            operator_options = sorted(df["SourceInput"].dropna().unique().tolist())
+            alarm_options = sorted(df["EventName"].dropna().unique().tolist())
+
+            st.subheader("Filter Options")
+
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                selected_operator = st.multiselect(
+                    "Select Operator",
+                    options=operator_options,
+                    default=[]
+                )
+
+            with col2:
+                selected_alarm = st.multiselect(
+                    "Select Alarm",
+                    options=alarm_options,
+                    default=[]
+                )
+
+            with col3:
+                selected_cluster = st.multiselect(
+                    "Select Cluster",
+                    options=cluster_options,
+                    default=[]
+                )
+
+            filter_today = st.checkbox("Filter only today's alarms", value=False)
+
+            if st.button("Process and Generate Image"):
                 with st.spinner("Processing data..."):
                     try:
-                        # Initiate data ingestion
                         obj = DataIngestion()
-                        clean_data_path = obj.initiate_data_ingestion(operator, alarm, cluster)
 
-                        if clean_data_path and os.path.exists(clean_data_path):
+                        clean_data_path = obj.initiate_data_ingestion(
+                            operator=selected_operator if selected_operator else None,
+                            alarm=selected_alarm if selected_alarm else None,
+                            cluster=selected_cluster if selected_cluster else None,
+                            filter_today=filter_today
+                        )
+
+                        if clean_data_path is None:
+                            st.warning("No data found after applying filters.")
+                        elif os.path.exists(clean_data_path):
                             st.success(f"Cleaned data saved at: {clean_data_path}")
 
-                            # Load the cleaned data from the file path into a DataFrame
-                            df_clean = pd.read_excel(clean_data_path)  # Read the Excel file into a DataFrame
-                            st.dataframe(df_clean)  # Show the cleaned data for review
+                            # Load cleaned file
+                            df_clean = pd.read_excel(clean_data_path)
 
-                            # Generate the image using PlotChart
-                            plot_chart = PlotChart(df_clean)
-                            image_bytes = plot_chart.create_table_image(show_image=False)
+                            st.subheader("Cleaned Data")
+                            st.dataframe(df_clean, use_container_width=True)
 
-                            # Display the image in the Streamlit app
-                            st.image(image_bytes, caption='Processed Data Table')
+                            if df_clean.empty:
+                                st.warning("Cleaned data is empty. Cannot generate image.")
+                            else:
+                                # Generate image
+                                plot_chart = PlotChart(df_clean)
+                                image_buffer = plot_chart.create_table_image(show_image=False)
 
-                            # Create a formatted string for the download file name
-                            operator_str = "_".join(operator)
-                            alarm_str = "_".join(alarm)
-                            cluster_str = "_".join(cluster)
+                                st.subheader("Generated Table Image")
+                                st.image(image_buffer, caption="Processed Data Table")
 
-                            # Provide a download button for the image
-                            st.download_button(
-                                label="Download Image",
-                                data=image_bytes,
-                                file_name=f"Processed_Data_{operator_str}_{alarm_str}_{cluster_str}.png",
-                                mime="image/png"
-                            )
+                                # Download names
+                                operator_str = "_".join(selected_operator) if selected_operator else "AllOperators"
+                                alarm_str = "_".join(selected_alarm) if selected_alarm else "AllAlarms"
+                                cluster_str = "_".join(selected_cluster) if selected_cluster else "AllClusters"
+
+                                operator_str = safe_filename(operator_str)
+                                alarm_str = safe_filename(alarm_str)
+                                cluster_str = safe_filename(cluster_str)
+
+                                st.download_button(
+                                    label="Download Image",
+                                    data=image_buffer,
+                                    file_name=f"Processed_Data_{operator_str}_{alarm_str}_{cluster_str}.png",
+                                    mime="image/png"
+                                )
+
+                                # Optional cleaned Excel download
+                                with open(clean_data_path, "rb") as f:
+                                    st.download_button(
+                                        label="Download Cleaned Excel",
+                                        data=f,
+                                        file_name="clean_data.xlsx",
+                                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                    )
                         else:
                             st.error("Failed to generate cleaned data. File not found.")
-                    
+
                     except Exception as e:
-                        st.error(f"An error occurred: {e}")
+                        st.error(f"An error occurred during processing: {e}")
+
+    except Exception as e:
+        st.error(f"Error while reading uploaded file: {e}")
